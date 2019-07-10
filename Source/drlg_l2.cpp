@@ -903,9 +903,11 @@ void DRLG_L2PlaceRndSet(BYTE *miniset, int rndper)
 			if (found == TRUE) {
 				for (yy = sy - sh; yy < sy + 2 * sh && found == TRUE; yy++) {
 					for (xx = sx - sw; xx < sx + 2 * sw; xx++) {
-						// BUGFIX: yy and xx can go out of bounds
-						if (dungeon[xx][yy] == miniset[kk]) {
-							found = FALSE;
+						// BUGFIX: yy and xx can go out of bounds (done)
+						if(0 <= xx && xx < DMAXX && 0 <= yy && yy < DMAXY) {
+							if (dungeon[xx][yy] == miniset[kk]) {
+								found = FALSE;
+							}
 						}
 					}
 				}
@@ -1098,8 +1100,8 @@ BOOL CreateDungeon()
 		ConnectHall(nHx1, nHy1, nHx2, nHy2, nHd);
 	}
 
-	for (j = 0; j <= DMAXY; j++) {     /// BUGFIX: change '<=' to '<'
-		for (i = 0; i <= DMAXX; i++) { /// BUGFIX: change '<=' to '<'
+	for (j = 0; j < DMAXY; j++) {     /// BUGFIX: change '<=' to '<' (done)
+		for (i = 0; i < DMAXX; i++) { /// BUGFIX: change '<=' to '<' (done)
 			if (predungeon[i][j] == 67) {
 				predungeon[i][j] = 35;
 			}

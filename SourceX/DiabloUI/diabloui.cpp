@@ -138,8 +138,7 @@ BOOL SetWindowPos(HWND hWnd, HWND hWndInsertAfter, int X, int Y, int cx, int cy,
 void UiDestroy()
 {
 	DUMMY();
-	mem_free_dbg(ArtHero.data);
-	ArtHero.data = NULL;
+	ArtHero.Unload();
 
 	if (font)
 		TTF_CloseFont(font);
@@ -400,27 +399,50 @@ bool IsInsideRect(const SDL_Event *event, const SDL_Rect *rect)
 
 void LoadArt(char *pszFile, Art *art, int frames, PALETTEENTRY *pPalette)
 {
-	if (art == NULL || art->data != NULL)
+	if (art == NULL || art->surface != NULL)
 		return;
 
-	if (!SBmpLoadImage(pszFile, 0, 0, 0, &art->width, &art->height, 0))
+	DWORD width, height, bpp;
+	if (!SBmpLoadImage(pszFile, 0, 0, 0, &width, &height, &bpp))
 		return;
 
-	art->data = (BYTE *)malloc(art->width * art->height);
-	if (!SBmpLoadImage(pszFile, pPalette, art->data, art->width * art->height, 0, 0, 0))
-		return;
+	Uint32 format;
+	switch (bpp) {
+	case 8:
+		format = SDL_PIXELFORMAT_INDEX8;
+		break;
+	case 24:
+		format = SDL_PIXELFORMAT_RGB888;
+		break;
+	case 32:
+		format = SDL_PIXELFORMAT_RGBA8888;
+		break;
+	default:
+		format = 0;
+		break;
+	}
+	SDL_Surface *art_surface = SDL_CreateRGBSurfaceWithFormat(SDL_SWSURFACE, width, height, bpp, format);
 
-	if (art->data == NULL)
+	if (!SBmpLoadImage(pszFile, pPalette, static_cast<BYTE *>(art_surface->pixels),
+	        art_surface->pitch * art_surface->format->BytesPerPixel * height, 0, 0, 0)) {
+		SDL_Log("Failed to load image");
+		SDL_FreeSurface(art_surface);
 		return;
+	}
 
-	art->height /= frames;
+	art->surface = art_surface;
+	art->frames = frames;
+	art->frame_height = height / frames;
 }
 
 void LoadMaskedArtFont(char *pszFile, Art *art, int frames, int mask)
 {
 	LoadArt(pszFile, art, frames);
-	art->masked = true;
-	art->mask = mask;
+#ifdef USE_SDL1
+	SDL_SetColorKey(art->surface, SDL_SRCCOLORKEY, mask);
+#else
+	SDL_SetColorKey(art->surface, SDL_TRUE, mask);
+#endif
 }
 
 void LoadArtFont(char *pszFile, int size, int color)
@@ -608,15 +630,27 @@ BOOL UiCreatePlayerDescription(_uiheroinfo *info, DWORD mode, char *desc)
 
 void DrawArt(int screenX, int screenY, Art *art, int nFrame, DWORD drawW)
 {
-	BYTE *src = (BYTE *)art->data + (art->width * art->height * nFrame);
-	BYTE *dst = &gpBuffer[screenX + 64 + (screenY + SCREEN_Y) * BUFFER_WIDTH];
-	drawW = drawW ? drawW : art->width;
+	if (screenY >= SCREEN_Y + SCREEN_HEIGHT || screenX >= SCREEN_X + SCREEN_WIDTH)
+		return;
 
-	for (DWORD i = 0; i < art->height && i + screenY < SCREEN_HEIGHT; i++, src += art->width, dst += BUFFER_WIDTH) {
-		for (DWORD j = 0; j < art->width && j + screenX < SCREEN_WIDTH; j++) {
-			if (j < drawW && (!art->masked || src[j] != art->mask))
-				dst[j] = src[j];
-		}
+	SDL_Rect src_rect = { 0, nFrame * art->h(), art->w(), art->h() };
+	if (drawW && drawW < src_rect.w)
+		src_rect.w = drawW;
+	SDL_Rect dst_rect = { screenX + SCREEN_X, screenY + SCREEN_Y, src_rect.w, src_rect.h };
+
+	if (art->surface->format->BitsPerPixel == 8 && art->palette_version != pal_surface_palette_version) {
+#ifdef USE_SDL1
+		if (SDL_SetPalette(art->surface, SDL_LOGPAL, pal_surface->format->palette->colors, 0, 256) != 1)
+			SDL_Log(SDL_GetError());
+#else
+		if (SDL_SetSurfacePalette(art->surface, pal_surface->format->palette) <= -1)
+			SDL_Log(SDL_GetError());
+#endif
+		art->palette_version = pal_surface_palette_version;
+	}
+
+	if (SDL_BlitSurface(art->surface, &src_rect, pal_surface, &dst_rect) <= -1) {
+		SDL_Log(SDL_GetError());
 	}
 }
 
@@ -721,12 +755,12 @@ void DrawArtStr(UI_Item *item)
 	int sx = x;
 	int sy = item->rect.y;
 	if (item->flags & UIS_VCENTER)
-		sy += (item->rect.h - ArtFonts[size][color].height) / 2;
+		sy += (item->rect.h - ArtFonts[size][color].h()) / 2;
 
 	for (size_t i = 0; i < strlen((char *)item->caption); i++) {
 		if (item->caption[i] == '\n') {
 			sx = x;
-			sy += ArtFonts[size][color].height;
+			sy += ArtFonts[size][color].h();
 			continue;
 		}
 		BYTE w = FontTables[size][*(BYTE *)&item->caption[i] + 2] ? FontTables[size][*(BYTE *)&item->caption[i] + 2] : FontTables[size][0];
@@ -794,12 +828,13 @@ void DrawSelector(UI_Item *item = 0)
 		size = FOCUS_BIG;
 	else if (item->rect.h >= 30)
 		size = FOCUS_MED;
+	Art *art = &ArtFocus[size];
 
-	int frame = GetAnimationFrame(8);
-	int y = item->rect.y + (item->rect.h - ArtFocus[size].height) / 2; // TODO FOCUS_MED appares higher then the box
+	int frame = GetAnimationFrame(art->frames);
+	int y = item->rect.y + (item->rect.h - art->h()) / 2; // TODO FOCUS_MED appares higher then the box
 
-	DrawArt(item->rect.x, y, &ArtFocus[size], frame);
-	DrawArt(item->rect.x + item->rect.w - ArtFocus[size].width, y, &ArtFocus[size], frame);
+	DrawArt(item->rect.x, y, art, frame);
+	DrawArt(item->rect.x + item->rect.w - art->w(), y, art, frame);
 }
 
 void DrawEditBox(UI_Item item)
@@ -897,7 +932,7 @@ bool UiItemMouseEvents(SDL_Event *event, UI_Item *items, int size)
 
 void DrawLogo(int t, int size)
 {
-	DrawArt(GetCenterOffset(ArtLogos[size].width), t, &ArtLogos[size], GetAnimationFrame(15));
+	DrawArt(GetCenterOffset(ArtLogos[size].w()), t, &ArtLogos[size], GetAnimationFrame(15));
 }
 
 void DrawMouse()

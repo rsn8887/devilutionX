@@ -296,12 +296,9 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		UiDestroy();
 		SaveGamma();
 
-#ifndef SWITCH
 		if (ghMainWnd) {
 			Sleep(300);
-			DestroyWindow(ghMainWnd);
-        }
-#endif
+		}
 	}
 
 	return FALSE;
@@ -321,9 +318,6 @@ void diablo_parse_flags(char *args)
 		if (_strnicmp("dd_emulate", args, strlen("dd_emulate")) == 0) {
 			gbEmulate = 1;
 			args += strlen("dd_emulate");
-		} else if (_strnicmp("dd_backbuf", args, strlen("dd_backbuf")) == 0) {
-			gbBackBuf = 1;
-			args += strlen("dd_backbuf");
 		} else if (_strnicmp("ds_noduplicates", args, strlen("ds_noduplicates")) == 0) {
 			gbDupSounds = FALSE;
 			args += strlen("ds_noduplicates");

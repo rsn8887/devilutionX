@@ -18,12 +18,10 @@ DECLARE_INTERFACE_(IDirectSoundBuffer, IUnknown)
 	STDMETHOD(Lock)(THIS_ DWORD dwOffset, DWORD dwBytes, LPVOID *ppvAudioPtr1, LPDWORD pdwAudioBytes1,
 			LPVOID *ppvAudioPtr2, LPDWORD pdwAudioBytes2, DWORD dwFlags) PURE;
 	STDMETHOD(Play)(THIS_ DWORD dwReserved1, DWORD dwPriority, DWORD dwFlags) PURE;
-	STDMETHOD(SetFormat)(THIS_ LPCWAVEFORMATEX pcfxFormat) PURE;
 	STDMETHOD(SetVolume)(THIS_ LONG lVolume) PURE;
 	STDMETHOD(SetPan)(THIS_ LONG lPan) PURE;
 	STDMETHOD(Stop)(THIS) PURE;
 	STDMETHOD(Unlock)(THIS_ LPVOID pvAudioPtr1, DWORD dwAudioBytes1, LPVOID pvAudioPtr2, DWORD dwAudioBytes2) PURE;
-	STDMETHOD(Restore)(THIS) PURE;
 	// clang-format on
 };
 
@@ -61,8 +59,6 @@ DECLARE_INTERFACE_(IDirectSound, IUnknown)
 {
 	// clang-format off
 	STDMETHOD(CreateSoundBuffer)(THIS_ LPCDSBUFFERDESC pcDSBufferDesc, LPDIRECTSOUNDBUFFER *ppDSBuffer, LPUNKNOWN pUnkOuter) PURE;
-	STDMETHOD(GetCaps)(THIS_ LPDSCAPS pDSCaps) PURE;
-	STDMETHOD(DuplicateSoundBuffer)(THIS_ LPDIRECTSOUNDBUFFER pDSBufferOriginal, LPDIRECTSOUNDBUFFER *ppDSBufferDuplicate) PURE;
 	// clang-format on
 };
 
@@ -70,8 +66,6 @@ class DirectSound : public IDirectSound {
 public:
 	virtual ULONG Release();
 	virtual HRESULT CreateSoundBuffer(LPCDSBUFFERDESC pcDSBufferDesc, LPDIRECTSOUNDBUFFER *ppDSBuffer, LPUNKNOWN pUnkOute);
-	virtual HRESULT GetCaps(LPDSCAPS pDSCaps);
-	virtual HRESULT DuplicateSoundBuffer(LPDIRECTSOUNDBUFFER pDSBufferOriginal, LPDIRECTSOUNDBUFFER *ppDSBufferDuplicate);
 };
 
 const auto DVL__FACDS = 0x878;
@@ -90,5 +84,4 @@ const auto DVL_DS_OK = 0;
 const auto DVL_DSERR_INVALIDPARAM = 0x80070057;
 const auto DVL_ERROR_SUCCESS = 0L;
 const auto DVL_DSSCL_EXCLUSIVE = 0x00000003;
-const auto DVL_DSBSTATUS_PLAYING = 0x00000001;
 const auto DVL_DSERR_BUFFERLOST = DVL_MAKE_DSHRESULT(150);

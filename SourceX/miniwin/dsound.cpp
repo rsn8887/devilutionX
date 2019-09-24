@@ -20,20 +20,6 @@ HRESULT DirectSound::CreateSoundBuffer(LPCDSBUFFERDESC pcDSBufferDesc, LPDIRECTS
 	return DVL_DS_OK;
 };
 
-HRESULT DirectSound::GetCaps(LPDSCAPS pDSCaps)
-{
-	return DVL_DS_OK;
-};
-
-/**
- * @brief SDL handels this for us when using Mix_PlayChannel(-1);
- */
-HRESULT DirectSound::DuplicateSoundBuffer(LPDIRECTSOUNDBUFFER pDSBufferOriginal, LPDIRECTSOUNDBUFFER *ppDSBufferDuplicate)
-{
-	UNIMPLEMENTED();
-	return DVL_DS_OK;
-};
-
 ///// DirectSoundBuffer /////
 
 ULONG DirectSoundBuffer::Release()
@@ -48,7 +34,14 @@ ULONG DirectSoundBuffer::Release()
  */
 HRESULT DirectSoundBuffer::GetStatus(LPDWORD pdwStatus)
 {
-	return DVL_DSERR_INVALIDPARAM;
+	for (int i = 1; i < Mix_AllocateChannels(-1); i++) {
+		if (Mix_GetChunk(i) == chunk && Mix_Playing(i)) {
+			*pdwStatus = DVL_DSBSTATUS_PLAYING;
+			break;
+		}
+	}
+
+	return DVL_DS_OK;
 };
 
 HRESULT DirectSoundBuffer::Lock(DWORD dwOffset, DWORD dwBytes, LPVOID *ppvAudioPtr1, LPDWORD pdwAudioBytes1,
@@ -71,11 +64,6 @@ HRESULT DirectSoundBuffer::Play(DWORD dwReserved1, DWORD dwPriority, DWORD dwFla
 	Mix_Volume(channel, volume);
 	Mix_SetPanning(channel, pan > 0 ? pan : 255, pan < 0 ? abs(pan) : 255);
 
-	return DVL_DS_OK;
-};
-
-HRESULT DirectSoundBuffer::SetFormat(LPCWAVEFORMATEX pcfxFormat)
-{
 	return DVL_DS_OK;
 };
 
@@ -116,11 +104,6 @@ HRESULT DirectSoundBuffer::Unlock(LPVOID pvAudioPtr1, DWORD dwAudioBytes1, LPVOI
 	chunk = Mix_LoadWAV_RW(rw, 1);
 	free(pvAudioPtr1);
 
-	return DVL_DS_OK;
-};
-
-HRESULT DirectSoundBuffer::Restore()
-{
 	return DVL_DS_OK;
 };
 

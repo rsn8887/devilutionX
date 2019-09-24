@@ -54,13 +54,25 @@ typedef enum UiFlags {
 	UIS_HIDDEN   = 1 << 13,
 } UiFlags;
 
-typedef struct Art {
-	BYTE *data;
-	DWORD width;
-	DWORD height;
-	bool masked = false;
-	BYTE mask;
-} Art;
+struct Art {
+	SDL_Surface *surface = NULL;
+	int frames = 1;
+	int frame_height = 0;
+	unsigned int palette_version = 0;
+
+	int w() const {
+		return surface->w;
+	}
+
+	int h() const {
+		return frame_height;
+	}
+
+	void Unload() {
+		SDL_FreeSurface(surface);
+		surface = NULL;
+	}
+};
 
 typedef struct UI_Item {
 	SDL_Rect rect;

@@ -11,22 +11,6 @@
 #define strncasecmp _strnicmp
 #endif
 
-#if !defined(_MSC_VER) && !defined(__x86_64__) && !defined(__i386__)
-unsigned int _rotl(unsigned int value, int shift)
-{
-	if ((shift &= 31) == 0)
-		return value;
-	return (value << shift) | (value >> (32 - shift));
-}
-
-unsigned int _rotr(unsigned int value, int shift)
-{
-	if ((shift &= 31) == 0)
-		return value;
-	return (value >> shift) | (value << (32 - shift));
-}
-#endif
-
 namespace dvl {
 
 DWORD last_error;
@@ -301,7 +285,7 @@ HWND CreateWindowExA(
 	}
 
 #ifdef USE_SDL1
-	SDL_EnableUNICODE( 1 );
+	SDL_EnableUNICODE(1);
 #endif
 
 	atexit(SDL_Quit);
@@ -317,7 +301,7 @@ HWND CreateWindowExA(
 
 	int upscale = 1;
 	DvlIntSetting("upscale", &upscale);
-	DvlIntSetting("fullscreen", &fullscreen);
+	DvlIntSetting("fullscreen", (int *)&fullscreen);
 
 	int grabInput = 1;
 	DvlIntSetting("grab input", &grabInput);
@@ -331,7 +315,8 @@ HWND CreateWindowExA(
 	SDL_WM_SetCaption(lpWindowName, WINDOW_ICON_NAME);
 	SDL_SetVideoMode(nWidth, nHeight, /*bpp=*/0, flags);
 	window = SDL_GetVideoSurface();
-	if (grabInput) SDL_WM_GrabInput(SDL_GRAB_ON);
+	if (grabInput)
+		SDL_WM_GrabInput(SDL_GRAB_ON);
 #else
 	int flags = 0;
 	if (upscale) {
@@ -575,49 +560,6 @@ int MessageBoxA(HWND hWnd, const char *Text, const char *Title, UINT Flags)
 	return 0;
 }
 
-LSTATUS RegOpenKeyExA(HKEY hKey, LPCSTR lpSubKey, DWORD ulOptions, REGSAM samDesired, PHKEY phkResult)
-{
-	return 1;
-};
-
-/**
- * @brief This is only ever used to enable or disable the screen saver in a hackish way
- * For all other settings operation SReg* from Storm is used instead.
- */
-LSTATUS RegQueryValueExA(HKEY hKey, LPCSTR lpValueName, LPDWORD lpReserved, LPDWORD lpType, BYTE *lpData, LPDWORD lpcbData)
-{
-	#ifndef USE_SDL1
-	if (SDL_IsScreenSaverEnabled()) {
-		lpData[0] = '0';
-		lpData[1] = '\0';
-	}
-	#endif
-
-	return 1;
-};
-
-/**
- * @brief This is only ever used to enable or disable the screen saver in a hackish way
- * For all other settings operation SReg* from Storm is used instead.
- */
-LSTATUS RegSetValueExA(HKEY hKey, LPCSTR lpValueName, DWORD Reserved, DWORD dwType, const BYTE *lpData, DWORD cbData)
-{
-	#ifndef USE_SDL1
-	if (lpData[0] == '0') {
-		SDL_DisableScreenSaver();
-	} else {
-		SDL_EnableScreenSaver();
-	}
-	#endif
-
-	return 1;
-};
-
-LSTATUS RegCloseKeyA(HKEY hKey)
-{
-	return 1;
-};
-
 void PostQuitMessage(int nExitCode)
 {
 	DUMMY();
@@ -630,18 +572,6 @@ LRESULT DefWindowProcA(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 	if (Msg == DVL_WM_QUERYENDSESSION)
 		exit(0);
 
-	return 0;
-}
-
-LONG GetWindowLongA(HWND hWnd, int nIndex)
-{
-	DUMMY();
-	return 0;
-}
-
-LONG SetWindowLongA(HWND hWnd, int nIndex, LONG dwNewLong)
-{
-	DUMMY();
 	return 0;
 }
 }

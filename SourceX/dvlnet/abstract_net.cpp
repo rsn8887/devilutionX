@@ -20,16 +20,16 @@ std::unique_ptr<abstract_net> abstract_net::make_net(provider_t provider)
 	return std::make_unique<loopback>();
 #else
 	if (provider == 'TCPN') {
-		return std::make_unique<tcp_client>();
+		return std::unique_ptr<abstract_net>(new tcp_client);
 	} else if (provider == 'UDPN') {
-		return std::make_unique<udp_p2p>();
+		return std::unique_ptr<abstract_net>(new udp_p2p);
 	} else if (provider == 'SCBL' || provider == 0) {
-		return std::make_unique<loopback>();
+		return std::unique_ptr<abstract_net>(new loopback);
 	} else {
 		ABORT();
 	}
 #endif
 }
 
-}  // namespace net
-}  // namespace dvl
+} // namespace net
+} // namespace dvl

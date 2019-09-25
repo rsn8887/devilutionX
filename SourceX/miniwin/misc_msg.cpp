@@ -314,7 +314,7 @@ WINBOOL PeekMessageA(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilter
 #endif
 	if (movie_playing) {
 		// allow plus button or mouse click to skip movie, no other input
-		switch (e.type) {
+	switch (e.type) {
 #ifndef USE_SDL1
 		case SDL_CONTROLLERBUTTONDOWN:
 		case SDL_CONTROLLERBUTTONUP:

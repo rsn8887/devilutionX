@@ -1,7 +1,7 @@
 ifeq ($(strip $(DEVKITPRO)),)
 	$(error "Please set DEVKITPRO in your environment. export DEVKITPRO=<path to>/devkitpro")
 endif
- 
+
 include $(DEVKITPRO)/libnx/switch_rules
 
 contents := $(shell mkdir -p obj ; mkdir -p release)
@@ -15,7 +15,7 @@ ICON 		:= switch/icon.jpg
 BINDIR		= release
 OUTPUT    	= diablo-nx
 
-LIBS      	= -specs=$(DEVKITPRO)/libnx/switch.specs -g -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE -L$(DEVKITPRO)/libnx/lib -L$(DEVKITPRO)/portlibs/switch/lib -lSDL2_mixer -lSDL2_ttf -lfreetype -lvorbisfile -lvorbis -logg -lmodplug -lmikmod -lmpg123 -lSDL2 -lopusfile -lopus -lEGL -lglapi -ldrm_nouveau -lpng -lbz2 -lz -lnx 
+LIBS      	= -specs=$(DEVKITPRO)/libnx/switch.specs -g -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE -L$(DEVKITPRO)/libnx/lib -L$(DEVKITPRO)/portlibs/switch/lib -lSDL2_mixer -lSDL2_ttf -lfreetype -lvorbisfile -lvorbis -logg -lmodplug -lmikmod -lmpg123 -lSDL2 -lopusfile -lopus -lEGL -lglapi -ldrm_nouveau -lpng -lbz2 -lz -lnx
 INCS      	= -I$(DEVKITPRO)/portlibs/switch/include/SDL2 -I"Source" -I"SourceS" -I"SourceX" -I"3rdParty/asio/include" -I"3rdParty/Radon/Radon/include" -I"3rdParty/libsmacker" -I$(DEVKITPRO)/libnx/include -I$(DEVKITPRO)/portlibs/switch/include
 CXXINCS   	= -I$(DEVKITPRO)/portlibs/switch/include/SDL2 -I"Source" -I"SourceS" -I"SourceX" -I"3rdParty/asio/include" -I"3rdParty/Radon/Radon/include" -I"3rdParty/libsmacker" -I$(DEVKITPRO)/libnx/include -I$(DEVKITPRO)/portlibs/switch/include
 DEFINES   	= -DSWITCH -DPLATFORM_NX -DSDL2 -DDEVILUTION_STUB -DDEVILUTION_ENGINE -DASIO_STANDALONE -DASIO_HEADER_ONLY
@@ -24,8 +24,8 @@ CFLAGS    	= $(INCS) $(DEFINES)    -march=armv8-a+crc+crypto -mtune=cortex-a57 -
 
 export NROFLAGS += --icon=$(ICON)
 export NROFLAGS += --nacp=$(BINDIR)/$(OUTPUT).nacp
- 
-SMACKEROBJ 		= obj/smk_bitstream.o obj/smk_hufftree.o obj/smacker.o 
+
+SMACKEROBJ 		= obj/smk_bitstream.o obj/smk_hufftree.o obj/smacker.o
 RADONOBJ		= obj/File.o obj/Key.o obj/Named.o obj/Section.o
 STORMLIBOBJ 	= obj/FileStream.o obj/SBaseCommon.o obj/SBaseFileTable.o obj/SBaseSubTypes.o obj/SCompression.o obj/SFileExtractFile.o obj/SFileFindFile.o obj/SFileGetFileInfo.o obj/SFileOpenArchive.o obj/SFileOpenFileEx.o obj/SFileReadFile.o
 PKWAREOBJ		= obj/explode.o obj/implode.o
@@ -109,7 +109,6 @@ MAINOBJ = \
 	obj/rand.o \
 	obj/thread.o \
 	obj/dsound.o \
-	obj/ddraw.o \
 	obj/sound.o \
 	obj/storm.o \
 	obj/storm_net.o \
@@ -148,16 +147,16 @@ $(BINDIR)/$(OUTPUT).nro	:	$(BINDIR)/$(OUTPUT).elf $(BINDIR)/$(OUTPUT).nacp
 
 #Smacker
 
-obj/smk_bitstream.o: $(GLOBALDEPS) 3rdParty/libsmacker/smk_bitstream.c 
+obj/smk_bitstream.o: $(GLOBALDEPS) 3rdParty/libsmacker/smk_bitstream.c
 	$(CC) -c 3rdParty/libsmacker/smk_bitstream.c -o obj/smk_bitstream.o $(CFLAGS)
 obj/smk_hufftree.o: $(GLOBALDEPS) 3rdParty/libsmacker/smk_hufftree.c
 	$(CC) -c 3rdParty/libsmacker/smk_hufftree.c -o obj/smk_hufftree.o $(CFLAGS)
-obj/smacker.o: $(GLOBALDEPS) 3rdParty/libsmacker/smacker.c 
+obj/smacker.o: $(GLOBALDEPS) 3rdParty/libsmacker/smacker.c
 	$(CC) -c 3rdParty/libsmacker/smacker.c -o obj/smacker.o $(CFLAGS)
 
 #Radon
 
-obj/File.o: $(GLOBALDEPS) 3rdParty/Radon/Radon/source/File.cpp 
+obj/File.o: $(GLOBALDEPS) 3rdParty/Radon/Radon/source/File.cpp
 	$(CXX) -c 3rdParty/Radon/Radon/source/File.cpp -o obj/File.o $(CXXFLAGS)
 obj/Key.o: $(GLOBALDEPS) 3rdParty/Radon/Radon/source/Key.cpp
 	$(CXX) -c 3rdParty/Radon/Radon/source/Key.cpp -o obj/Key.o $(CXXFLAGS)
@@ -201,13 +200,13 @@ obj/implode.o: $(GLOBALDEPS) 3rdParty/PKWare/implode.cpp
 #Devilution
 obj/appfat.o: $(GLOBALDEPS) Source/appfat.cpp
 	$(CXX) -c Source/appfat.cpp -o obj/appfat.o $(CXXFLAGS)
-obj/automap.o: $(GLOBALDEPS) Source/automap.cpp 
+obj/automap.o: $(GLOBALDEPS) Source/automap.cpp
 	$(CXX) -c Source/automap.cpp -o obj/automap.o $(CXXFLAGS)
 obj/capture.o: $(GLOBALDEPS)  Source/capture.cpp
 	$(CXX) -c  Source/capture.cpp -o obj/capture.o $(CXXFLAGS)
-obj/codec.o: $(GLOBALDEPS) Source/codec.cpp 
+obj/codec.o: $(GLOBALDEPS) Source/codec.cpp
 	$(CXX) -c Source/codec.cpp -o obj/codec.o $(CXXFLAGS)
-obj/control.o: $(GLOBALDEPS) Source/control.cpp 
+obj/control.o: $(GLOBALDEPS) Source/control.cpp
 	$(CXX) -c Source/control.cpp -o obj/control.o $(CXXFLAGS)
 obj/cursor.o: $(GLOBALDEPS) Source/cursor.cpp
 	$(CXX) -c Source/cursor.cpp -o obj/cursor.o $(CXXFLAGS)
@@ -221,7 +220,7 @@ obj/doom.o: $(GLOBALDEPS) Source/doom.cpp
 	$(CXX) -c Source/doom.cpp -o obj/doom.o $(CXXFLAGS)
 obj/drlg_l1.o: $(GLOBALDEPS)  Source/drlg_l1.cpp
 	$(CXX) -c  Source/drlg_l1.cpp -o obj/drlg_l1.o $(CXXFLAGS)
-obj/drlg_l2.o: $(GLOBALDEPS) Source/drlg_l2.cpp 
+obj/drlg_l2.o: $(GLOBALDEPS) Source/drlg_l2.cpp
 	$(CXX) -c Source/drlg_l2.cpp -o obj/drlg_l2.o $(CXXFLAGS)
 obj/drlg_l3.o: $(GLOBALDEPS) Source/drlg_l3.cpp
 	$(CXX) -c Source/drlg_l3.cpp -o obj/drlg_l3.o $(CXXFLAGS)
@@ -337,9 +336,9 @@ obj/trigs.o: $(GLOBALDEPS)  Source/trigs.cpp
 	$(CXX) -c  Source/trigs.cpp -o obj/trigs.o $(CXXFLAGS)
 obj/wave.o: $(GLOBALDEPS)  Source/wave.cpp
 	$(CXX) -c  Source/wave.cpp -o obj/wave.o $(CXXFLAGS)
- 
-#Main	
-obj/dx.o: $(GLOBALDEPS) SourceX/dx.cpp 
+
+#Main
+obj/dx.o: $(GLOBALDEPS) SourceX/dx.cpp
 	$(CXX) -c SourceX/dx.cpp -o obj/dx.o $(CXXFLAGS)
 obj/misc.o: $(GLOBALDEPS) SourceX/miniwin/misc.cpp
 	$(CXX) -c SourceX/miniwin/misc.cpp -o obj/misc.o $(CXXFLAGS)
@@ -355,8 +354,6 @@ obj/thread.o: $(GLOBALDEPS) SourceX/miniwin/thread.cpp
 	$(CXX) -c SourceX/miniwin/thread.cpp -o obj/thread.o $(CXXFLAGS)
 obj/dsound.o: $(GLOBALDEPS) SourceX/miniwin/dsound.cpp
 	$(CXX) -c SourceX/miniwin/dsound.cpp -o obj/dsound.o $(CXXFLAGS)
-obj/ddraw.o: $(GLOBALDEPS) SourceX/miniwin/ddraw.cpp
-	$(CXX) -c SourceX/miniwin/ddraw.cpp -o obj/ddraw.o $(CXXFLAGS)
 obj/sound.o: $(GLOBALDEPS) SourceX/sound.cpp
 	$(CXX) -c SourceX/sound.cpp -o obj/sound.o $(CXXFLAGS)
 obj/storm.o: $(GLOBALDEPS) SourceX/storm/storm.cpp

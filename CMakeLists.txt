@@ -242,21 +242,23 @@ target_compile_definitions(devilution PUBLIC
 target_compile_definitions(devilutionx PRIVATE ASIO_STANDALONE)
 
 
-if(USE_SDL1)
-  target_link_libraries(devilutionx PRIVATE
-    ${SDL_LIBRARY} ${SDL_TTF_LIBRARY} ${SDL_MIXER_LIBRARY})
-  target_compile_definitions(devilutionx PRIVATE USE_SDL1)
-else()
-  target_link_libraries(devilutionx PRIVATE
-    SDL2::SDL2main
-    SDL2::SDL2_ttf
-    SDL2::SDL2_mixer)
-endif()
+foreach(target devilution devilutionx)
+  if(USE_SDL1)
+    target_link_libraries(${target} PRIVATE
+      ${SDL_LIBRARY} ${SDL_TTF_LIBRARY} ${SDL_MIXER_LIBRARY})
+    target_compile_definitions(${target} PRIVATE USE_SDL1)
+  else()
+    target_link_libraries(${target} PRIVATE
+      SDL2::SDL2main
+      SDL2::SDL2_ttf
+      SDL2::SDL2_mixer)
+  endif()
 
-if(ASAN)
-  target_compile_options(devilution PUBLIC -fsanitize=address -fsanitize-recover=address)
-  target_link_libraries(devilution PUBLIC -fsanitize=address -fsanitize-recover=address)
-endif()
+  if(ASAN)
+    target_compile_options(${target} PUBLIC -fsanitize=address -fsanitize-recover=address)
+    target_link_libraries(${target} PUBLIC -fsanitize=address -fsanitize-recover=address)
+  endif()
+endforeach(target devilution devilutionx)
 
 if(DIST AND NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
   target_link_libraries(devilutionx PUBLIC -static-libgcc -static-libstdc++)
@@ -275,19 +277,18 @@ if(HAIKU)
 endif()
 
 if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-  # Note: In Debug mode, GCC generates spurious memory references that upset Valgrind,
-  # these options fix that.
-  target_compile_options(devilution PUBLIC $<$<CONFIG:Debug>:-fno-omit-frame-pointer>)
-  target_compile_options(devilution PUBLIC -Wno-unknown-pragmas)
+  if(DEBUG)
+    # Note: For Valgrind suppor.
+    target_compile_options(devilution PUBLIC -fno-omit-frame-pointer)
+  endif()
   # Ignore serious warnings due to "quality" of decompiled code
   # Currently, disable ignore all warnings (-w), to be removed later
-  target_compile_options(devilution PRIVATE -fpermissive -Wno-write-strings -Wno-multichar -w)
-  # Disable optimizations that can break non-standards-conforming code
-  target_compile_options(devilution PRIVATE -fno-strict-aliasing)
+  target_compile_options(devilution PRIVATE -fpermissive -w)
 
   # Warnings for devilutionX
-  target_compile_options(devilutionx PRIVATE -Wall -Wextra -Wno-write-strings -Wno-multichar -Wno-unused-parameter)
+  target_compile_options(devilutionx PRIVATE -Wall -Wextra -Wno-write-strings -Wno-multichar -Wno-unused-parameter -Wno-missing-field-initializers -Wno-format-security)
 
+  # For ARM and other default unsigned char platforms
   target_compile_options(devilution PRIVATE -fsigned-char)
   target_compile_options(devilutionx PRIVATE -fsigned-char)
 endif()
@@ -297,17 +298,16 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-  target_compile_options(devilution PRIVATE -fno-aggressive-loop-optimizations)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
   # Style issues
   target_compile_options(devilutionx PRIVATE -Wno-parentheses -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses)
   # Silence warnings about __int64 alignment hack not always being applicable
   target_compile_options(devilutionx PRIVATE -Wno-ignored-attributes)
-  # Fix: error: cast from pointer to smaller type 'unsigned char' loses information
-  target_compile_options(devilution PRIVATE -fms-extensions -fms-compatibility -fms-compatibility-version=19.00)
-	# Silence appfat.cpp warnings
+  # Silence appfat.cpp warnings
   set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wno-narrowing")
 endif()
 

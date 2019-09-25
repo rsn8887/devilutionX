@@ -58,7 +58,7 @@ BOOL SFileDdaBeginEx(HANDLE hFile, DWORD flags, DWORD mask, unsigned __int32 lDi
 {
 	DWORD bytestoread = SFileGetFileSize(hFile, 0);
 	char *SFXbuffer = (char *)malloc(bytestoread);
-	SFileReadFile(hFile, SFXbuffer, bytestoread, NULL, 0);
+	SFileReadFile(hFile, SFXbuffer, bytestoread, NULL, NULL);
 
 	SDL_RWops *rw = SDL_RWFromConstMem(SFXbuffer, bytestoread);
 	if (rw == NULL) {
@@ -255,7 +255,7 @@ BOOL SBmpLoadImage(const char *pszFileName, PALETTEENTRY *pPalette, BYTE *pBuffe
 	if (dwHeight)
 		*dwHeight = height;
 	if (pdwBpp)
-		*pdwBpp = SDL_SwapLE16(pcxhdr.BitsPerPixel);
+		*pdwBpp = pcxhdr.BitsPerPixel;
 
 	if (!pBuffer) {
 		SFileSetFilePointer(hFile, 0, 0, 2);
@@ -581,7 +581,7 @@ BOOL SVidPlayBegin(char *filename, int a2, int a3, int a4, int a5, int flags, HA
 		SDL_AudioSpec audioFormat;
 		SDL_zero(audioFormat);
 		audioFormat.freq = rate[0];
-		audioFormat.format = depth[0] == 16 ? AUDIO_S16 : AUDIO_U8;
+		audioFormat.format = depth[0] == 16 ? AUDIO_S16SYS : AUDIO_U8;
 		audioFormat.channels = channels[0];
 
 		Mix_CloseAudio();

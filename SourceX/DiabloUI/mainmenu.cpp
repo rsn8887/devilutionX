@@ -34,7 +34,7 @@ void mainmenu_restart_repintro()
 	dwAttractTicks = GetTickCount() + mainmenu_attract_time_out * 1000;
 }
 
-void mainmenu_Load(char *name, void(*fnSound)(char *file))
+void mainmenu_Load(char *name, void (*fnSound)(char *file))
 {
 	gfnSoundFunction = fnSound;
 	MAINMENU_DIALOG[6].caption = name;
@@ -54,7 +54,7 @@ void mainmenu_Free()
 	ArtBackground.Unload();
 }
 
-BOOL UiMainMenuDialog(char *name, int *pdwResult, void(*fnSound)(char *file), int attractTimeOut)
+BOOL UiMainMenuDialog(char *name, int *pdwResult, void (*fnSound)(char *file), int attractTimeOut)
 {
 	mainmenu_attract_time_out = attractTimeOut;
 	mainmenu_Load(name, fnSound);

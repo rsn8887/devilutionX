@@ -97,120 +97,12 @@ WINBOOL FindClose(HANDLE hFindFile)
 	return true;
 }
 
-/**
- * @brief Normally this would get the Windows install, but Diablo uses it to find the old save game folder
- */
-UINT GetWindowsDirectoryA(LPSTR lpBuffer, UINT uSize)
-{
-#ifndef SWITCH
-	char *name = SDL_GetPrefPath("diasurgical", "devilution");
-	strncpy(lpBuffer, name, uSize);
-	SDL_free(name);
-
-	DWORD len = strlen(lpBuffer);
-
-	lpBuffer[len - 1] = '\0';
-
-	return len - 1;
-#else
-	return 0;
-#endif
-}
-
-WINBOOL GetDiskFreeSpaceA(LPCSTR lpRootPathName, LPDWORD lpSectorsPerCluster, LPDWORD lpBytesPerSector,
-    LPDWORD lpNumberOfFreeClusters, LPDWORD lpTotalNumberOfClusters)
-{
-	*lpBytesPerSector = 1;
-	*lpSectorsPerCluster = 1;
-	*lpNumberOfFreeClusters = 10 << 20;
-	*lpTotalNumberOfClusters = 10 << 20;
-	return true;
-}
-
-/**
- * @brief Used for getting save path, by removing up to and including the last "\"
- */
-DWORD GetModuleFileNameA(HMODULE hModule, LPSTR lpFilename, DWORD nSize)
-{
-#ifndef SWITCH
-	char *name = SDL_GetPrefPath("diasurgical", "devilution");
-	strncpy(lpFilename, name, nSize);
-	SDL_free(name);
-
-	DWORD len = strlen(lpFilename);
-
-	lpFilename[len - 1] = '\\';
-
-	return len;
-#else
-	strcpy(lpFilename,"");
-	return 0;
-#endif
-}
-
 WINBOOL GetComputerNameA(LPSTR lpBuffer, LPDWORD nSize)
 {
 	DUMMY();
 	strncpy(lpBuffer, "localhost", *nSize);
 	*nSize = strlen(lpBuffer);
 	return true;
-}
-
-DWORD GetFileVersionInfoSizeA(LPCSTR lptstrFilename, LPDWORD lpdwHandle)
-{
-	DUMMY();
-	*lpdwHandle = 0;
-
-	return 1532;
-}
-
-BOOL GetFileVersionInfoA(LPCSTR lptstrFilename, DWORD dwHandle, DWORD dwLen, LPVOID lpData)
-{
-	DUMMY();
-	*(int *)lpData = 16711836; // TODO use actual version from .rc
-
-	return true;
-}
-
-BOOL VerQueryValueA(LPCVOID pBlock, LPCSTR lpSubBlock, LPVOID *lplpBuffer, PUINT puLen)
-{
-	DUMMY();
-	static VS_FIXEDFILEINFO lpBuffer;
-
-	// Set internal version, TODO use actual version from .rc
-	lpBuffer.dwProductVersionMS = 1;
-	lpBuffer.dwProductVersionMS <<= 16;
-	lpBuffer.dwProductVersionMS |= 0 & 0xFFFF;
-	lpBuffer.dwProductVersionLS = 9;
-	lpBuffer.dwProductVersionLS <<= 16;
-	lpBuffer.dwProductVersionLS |= 2 & 0xFFFF;
-	*lplpBuffer = (LPVOID *)&lpBuffer;
-
-	return true;
-}
-
-DWORD GetCurrentDirectory(DWORD nBufferLength, LPTSTR lpBuffer)
-{
-#ifndef SWITCH
-	char *base_path = SDL_GetBasePath();
-	if (base_path == NULL) {
-		SDL_Log(SDL_GetError());
-		base_path = SDL_strdup("./");
-	}
-	eprintf("BasePath: %s\n", base_path);
-
-	strncpy(lpBuffer, base_path, nBufferLength);
-	SDL_free(base_path);
-
-	return strlen(lpBuffer);
-#else
-    return 0;
-#endif
-}
-
-DWORD GetLogicalDriveStringsA(DWORD nBufferLength, LPSTR lpBuffer)
-{
-	return 0;
 }
 
 UINT GetDriveTypeA(LPCSTR lpRootPathName)
@@ -234,18 +126,6 @@ WINBOOL DeleteFileA(LPCSTR lpFileName)
 	}
 
 	return true;
-}
-
-WINBOOL CopyFileA(LPCSTR lpExistingFileName, LPCSTR lpNewFileName, WINBOOL bFailIfExists)
-{
-	UNIMPLEMENTED();
-	return true;
-}
-
-HFILE OpenFile(LPCSTR lpFileName, LPOFSTRUCT lpReOpenBuff, UINT uStyle)
-{
-	DUMMY();
-	return DVL_HFILE_ERROR;
 }
 
 HWND SetCapture(HWND hWnd)
@@ -412,73 +292,6 @@ int GetSystemMetrics(int nIndex)
 	return 0;
 }
 
-/**
- * @brief Used for getting a black brush
- */
-HGDIOBJ GetStockObject(int i)
-{
-	return NULL;
-}
-
-BOOL IsBadReadPtr(const void *lp, UINT_PTR ucb)
-{
-	UNIMPLEMENTED();
-	return true;
-}
-
-BOOL IsBadWritePtr(LPVOID lp, UINT_PTR ucb)
-{
-	UNIMPLEMENTED();
-	return true;
-}
-
-SIZE_T VirtualQuery(LPCVOID lpAddress, PMEMORY_BASIC_INFORMATION lpBuffer, SIZE_T dwLength)
-{
-	UNIMPLEMENTED();
-	return false;
-}
-
-LPVOID VirtualAlloc(LPVOID lpAddress, SIZE_T dwSize, DWORD flAllocationType, DWORD flProtect)
-{
-	UNIMPLEMENTED();
-	return NULL;
-}
-
-BOOL VirtualFree(LPVOID lpAddress, SIZE_T dwSize, DWORD dwFreeType)
-{
-	UNIMPLEMENTED();
-	return false;
-}
-
-void GetLocalTime(LPSYSTEMTIME lpSystemTime)
-{
-	UNIMPLEMENTED();
-}
-
-long _findfirst(const char *pattern, struct DVL_finddata_t *finder)
-{
-	DUMMY();
-	return -1;
-}
-
-int _findnext(long, struct DVL_finddata_t *finder)
-{
-	UNIMPLEMENTED();
-	return -1;
-}
-
-HMODULE GetModuleHandleA(LPCSTR lpModuleName)
-{
-	UNIMPLEMENTED();
-	return NULL;
-}
-
-BOOL GetUserNameA(LPSTR lpBuffer, LPDWORD pcbBuffer)
-{
-	UNIMPLEMENTED();
-	return false;
-}
-
 int GetDeviceCaps(HDC hdc, int index)
 {
 	SDL_DisplayMode current;
@@ -529,16 +342,6 @@ BOOL GetVersionExA(LPOSVERSIONINFOA lpVersionInformation)
 void lstrcpynA(LPSTR lpString1, LPCSTR lpString2, int iMaxLength)
 {
 	strncpy(lpString1, lpString2, iMaxLength);
-}
-
-DWORD GetPrivateProfileStringA(LPCSTR lpAppName, LPCSTR lpKeyName, LPCSTR lpDefault, LPSTR lpReturnedString,
-    DWORD nSize, LPCSTR lpFileName)
-{
-	if (!SRegLoadString(lpAppName, lpKeyName, 0, lpReturnedString, nSize)) {
-		strncpy(lpReturnedString, lpDefault, nSize);
-		SRegSaveString(lpAppName, lpKeyName, 0, lpReturnedString);
-	}
-	return 0; // dummy return value
 }
 
 int MessageBoxA(HWND hWnd, const char *Text, const char *Title, UINT Flags)

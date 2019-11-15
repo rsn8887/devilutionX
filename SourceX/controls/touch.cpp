@@ -3,6 +3,12 @@
 #include "touch.h"
 #include <math.h>
 
+// TODO: How to find display size for each platform programmatically?
+#define DISPLAY_WIDTH 1440
+#define DISPLAY_HEIGHT 1080
+#define X_BORDERWIDTH (1920 - 1440) / 2
+#define Y_BORDERWIDTH 0
+
 template <typename T>
 inline T clip(T v, T amin, T amax)
 {
@@ -115,8 +121,8 @@ static void preprocess_finger_down(SDL_Event *event)
 	int y = mouse_y;
 
 	if (direct_touch) {
-		x = event->tfinger.x;
-		y = event->tfinger.y;
+		x = event->tfinger.x * DISPLAY_WIDTH + X_BORDERWIDTH;
+		y = event->tfinger.y * DISPLAY_HEIGHT + Y_BORDERWIDTH;
 		dvl::OutputToLogical(&x, &y);
 	}
 
@@ -197,8 +203,8 @@ static void preprocess_finger_up(SDL_Event *event)
 				// need to raise the button later
 				simulated_click_start_time[port][0] = event->tfinger.timestamp;
 				if (direct_touch) {
-					x = event->tfinger.x;
-					y = event->tfinger.y;
+					x = event->tfinger.x * DISPLAY_WIDTH + X_BORDERWIDTH;
+					y = event->tfinger.y * DISPLAY_HEIGHT + Y_BORDERWIDTH;
 					dvl::OutputToLogical(&x, &y);
 				}
 			}
@@ -243,8 +249,8 @@ static void preprocess_finger_motion(SDL_Event *event)
 		int yrel = 0;
 
 		if (direct_touch) {
-			x = event->tfinger.x;
-			y = event->tfinger.y;
+			x = event->tfinger.x * DISPLAY_WIDTH + X_BORDERWIDTH;
+			y = event->tfinger.y * DISPLAY_HEIGHT + Y_BORDERWIDTH;
 			dvl::OutputToLogical(&x, &y);
 		} else {
 			// for relative mode, use the pointer speed setting
